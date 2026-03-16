@@ -51,7 +51,6 @@
         var fbp = getCookie('_fbp');
         var fbc = getCookie('_fbc');
 
-        // If no fbc cookie but fbclid exists, construct fbc manually
         if (!fbc && fbclid) {
           fbc = 'fb.1.' + Date.now() + '.' + fbclid;
         }
@@ -70,10 +69,10 @@
           }
         };
 
-        // MakeのWebhook URL
         var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
 
-        // 【修正箇所】CORSエラーを回避するためfetchを使用し、credentialsをomitに設定
+        // 【修正ポイント】credentials: 'omit' を指定した fetch に変更
+        // これにより、ブラウザのセキュリティ制限による CORS エラーを回避します
         fetch(webhookUrl, {
           method: 'POST',
           mode: 'cors',
@@ -81,6 +80,10 @@
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json'
+          }
+        }).then(function(response) {
+          if (!response.ok) {
+            console.warn('Webhook responded with status:', response.status);
           }
         }).catch(function(err) {
           console.warn('CAPI transmission failed:', err);
