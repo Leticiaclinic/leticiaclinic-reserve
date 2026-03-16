@@ -23,6 +23,13 @@
   </noscript>
 
   <script>
+    // ===== ユーザーIPアドレスを早期取得 =====
+    var userIP = '';
+    fetch('https://api.ipify.org?format=json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { userIP = data.ip || ''; })
+      .catch(function() { userIP = ''; });
+
     function getCookie(name) {
       var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
       return match ? decodeURIComponent(match[2]) : '';
@@ -32,6 +39,15 @@
       var params = new URLSearchParams(window.location.search);
       return params.get(name) || '';
     }
+
+    // ===== fbclid → _fbc Cookie 早期保存（ベストプラクティス準拠） =====
+    (function() {
+      var fbclid = getParam('fbclid');
+      if (fbclid && !getCookie('_fbc')) {
+        var fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+        document.cookie = '_fbc=' + encodeURIComponent(fbc) + ';max-age=' + (90*24*60*60) + ';path=/;SameSite=Lax';
+      }
+    })();
 
     function safeFbq() {
       try {
@@ -55,7 +71,10 @@
           content_name: contentName,
           user_data: {
             client_user_agent: navigator.userAgent,
-            fbc: fbc, fbp: fbp, fbclid: fbclid
+            client_ip_address: userIP,
+            fbc: fbc,
+            fbp: fbp,
+            fbclid: fbclid
           }
         };
 
@@ -122,7 +141,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ===== HERO ===== */
     .hero {
       width: 100%;
       position: relative;
@@ -196,7 +214,6 @@
     }
     @keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
 
-    /* ===== MAIN ===== */
     .main {
       max-width: 520px;
       margin: 0 auto;
@@ -210,7 +227,6 @@
       background: linear-gradient(to bottom, transparent, var(--gold-dim));
     }
 
-    /* ===== REVEAL ANIMATION ===== */
     .reveal {
       opacity: 0;
       transform: translateY(24px);
@@ -218,7 +234,6 @@
     }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    /* ===== CAMPAIGN CARD ===== */
     .campaign-card {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
       border: 1px solid var(--border);
@@ -255,7 +270,6 @@
       color: var(--text-muted);
     }
 
-    /* ===== CTA SECTION ===== */
     .cta-primary { margin-bottom: 32px; }
     .cta-primary-text {
       text-align: center;
@@ -265,7 +279,6 @@
       margin-bottom: 16px;
     }
 
-    /* ===== BUTTONS — テキスト中央寄せ ===== */
     .btn {
       display: flex;
       align-items: center;
@@ -315,7 +328,6 @@
     }
     .btn-web .btn-icon-wrap { background: rgba(201,169,110,0.1); }
 
-    /* ===== PRICING ===== */
     .pricing-section { margin-bottom: 24px; }
     .pricing-item {
       display: flex;
@@ -347,7 +359,6 @@
       margin-left: 2px;
     }
 
-    /* ===== FOOTER ===== */
     .footer {
       text-align: center;
       padding-top: 24px;
@@ -365,7 +376,6 @@
       line-height: 1.7;
     }
 
-    /* ===== スマホ向け最適化 (375px以下の小型端末) ===== */
     @media (max-width: 374px) {
       .hero { min-height: 220px; }
       .hero-en { letter-spacing: 0.18em; }
@@ -383,17 +393,14 @@
       .pricing-item-price { align-self: flex-end; }
     }
 
-    /* ===== 中型スマホ (375px〜430px) ===== */
     @media (min-width: 375px) and (max-width: 430px) {
       .main { padding: 0 18px 60px; }
     }
 
-    /* ===== 大型スマホ・タブレット ===== */
     @media (min-width: 431px) {
       .main { padding: 0 24px 60px; }
     }
 
-    /* ===== Landscape対応 ===== */
     @media (orientation: landscape) and (max-height: 500px) {
       .hero {
         height: 70vh;
@@ -404,7 +411,6 @@
       .hero-content { transform: translateY(-55%); }
     }
 
-    /* ===== iOS SafeArea対応 ===== */
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .main {
         padding-bottom: calc(60px + env(safe-area-inset-bottom));
