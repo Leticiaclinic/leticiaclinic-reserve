@@ -17,43 +17,27 @@
     fbq('init', '872763425811626');
     fbq('track', 'PageView');
   </script>
-  <noscript>
-    <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=872763425811626&ev=PageView&noscript=1"/>
-  </noscript>
 
   <script>
-    // ── Cookie helper ──
     function getCookie(name) {
       var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
       return match ? decodeURIComponent(match[2]) : '';
     }
 
-    // ── URL parameter helper ──
     function getParam(name) {
       var params = new URLSearchParams(window.location.search);
       return params.get(name) || '';
     }
 
-    // ── Safe fbq ──
     function safeFbq() {
-      try {
-        if (typeof fbq === 'function') {
-          fbq.apply(null, arguments);
-        }
-      } catch(e) {}
+      try { if (typeof fbq === 'function') fbq.apply(null, arguments); } catch(e) {}
     }
 
-    // ── Send event data to Make Webhook for CAPI ──
     function sendCAPIEvent(eventName, contentName) {
       try {
         var fbclid = getParam('fbclid');
         var fbp = getCookie('_fbp');
-        var fbc = getCookie('_fbc');
-
-        if (!fbc && fbclid) {
-          fbc = 'fb.1.' + Date.now() + '.' + fbclid;
-        }
+        var fbc = getCookie('_fbc') || (fbclid ? 'fb.1.' + Date.now() + '.' + fbclid : '');
 
         var payload = {
           event_name: eventName,
@@ -63,59 +47,37 @@
           content_name: contentName,
           user_data: {
             client_user_agent: navigator.userAgent,
-            fbc: fbc || '',
-            fbp: fbp || '',
-            fbclid: fbclid || ''
+            fbc: fbc, fbp: fbp, fbclid: fbclid
           }
         };
 
-        var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
+        // 【最新のURLに更新済み】
+        var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjbz';
 
-        // 【修正ポイント】credentials: 'omit' を指定した fetch に変更
-        // これにより、ブラウザのセキュリティ制限による CORS エラーを回避します
         fetch(webhookUrl, {
           method: 'POST',
           mode: 'cors',
           credentials: 'omit', 
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }).then(function(response) {
-          if (!response.ok) {
-            console.warn('Webhook responded with status:', response.status);
-          }
-        }).catch(function(err) {
-          console.warn('CAPI transmission failed:', err);
-        });
-
-      } catch(e) {
-        // Silently fail — don't block user navigation
-      }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(function(err) { console.warn('CAPI error:', err); });
+      } catch(e) {}
     }
 
-    // ── Button handlers ──
     function handleLineClick(e) {
       e.preventDefault();
       safeFbq('track', 'Lead', {content_name: 'LINE登録_モニターキャンペーン'});
       sendCAPIEvent('Lead', 'LINE登録_モニターキャンペーン');
-      var url = 'https://liff.line.me/1657615313-pVn9wnwB?rid=161';
-      setTimeout(function() {
-        window.location.href = url;
-      }, 400);
+      setTimeout(function() { window.location.href = 'https://liff.line.me/1657615313-pVn9wnwB?rid=161'; }, 400);
     }
 
     function handleWebClick(e) {
       e.preventDefault();
       safeFbq('track', 'Schedule', {content_name: 'WEB予約_モニターキャンペーン'});
       sendCAPIEvent('Schedule', 'WEB予約_モニターキャンペーン');
-      var url = 'https://connect-app.net/r_leticia/reserve/main';
-      setTimeout(function() {
-        window.open(url, '_blank', 'noopener');
-      }, 400);
+      setTimeout(function() { window.open('https://connect-app.net/r_leticia/reserve/main', '_blank', 'noopener'); }, 400);
     }
 
-    // ── Send PageView CAPI event on page load ──
     document.addEventListener('DOMContentLoaded', function() {
       sendCAPIEvent('PageView', 'クッションページ閲覧');
     });
@@ -123,553 +85,49 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Noto+Serif+JP:wght@200;300;400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Noto+Serif+JP:wght@300;400;500&display=swap" rel="stylesheet">
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:           #0a0908;
-      --surface:      #131110;
-      --surface2:     #1c1916;
-      --surface3:     #252120;
-      --gold:         #c9a96e;
-      --gold-light:   #e8d5aa;
-      --gold-dim:     #7a6340;
-      --gold-glow:    rgba(201,169,110,0.15);
-      --text:         #f0ebe3;
-      --text-muted:   #8a7d6e;
-      --border:       rgba(201,169,110,0.18);
-      --border-soft:  rgba(201,169,110,0.08);
-      --accent-gold:  #d4a754;
-      --line-green:   #06c755;
-      --line-dark:    #059444;
-      --radius:       14px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      min-height: 100vh;
-      background: var(--bg);
-      font-family: 'Noto Serif JP', 'Shippori Mincho', serif;
-      color: var(--text);
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ======================= HERO ======================= */
-    .hero {
-      width: 100%;
-      position: relative;
-      height: 46vh;
-      min-height: 280px;
-      max-height: 440px;
-      overflow: hidden;
-    }
-
-    .hero-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 30%;
-      display: block;
-      filter: brightness(0.75) contrast(1.05);
-      animation: heroZoom 12s ease-out forwards;
-    }
-
-    @keyframes heroZoom {
-      from { transform: scale(1.08); }
-      to   { transform: scale(1); }
-    }
-
-    .hero-overlay {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(180deg,
-          rgba(10,9,8,0.4) 0%,
-          rgba(10,9,8,0.35) 25%,
-          rgba(10,9,8,0.3) 50%,
-          rgba(10,9,8,0.5) 70%,
-          rgba(10,9,8,0.9) 90%,
-          rgba(10,9,8,1) 100%
-        );
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .hero-content {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      transform: translateY(-60%);
-      z-index: 3;
-      text-align: center;
-      padding: 0 24px;
-      animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.3s both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-logo {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .hero-logo-line {
-      width: 48px;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--gold));
-    }
-    .hero-logo-line.r {
-      background: linear-gradient(to left, transparent, var(--gold));
-    }
-    .hero-logo-diamond {
-      width: 6px;
-      height: 6px;
-      background: var(--gold);
-      transform: rotate(45deg);
-    }
-
-    .hero-en {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(20px, 5.2vw, 32px);
-      font-weight: 400;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--gold-light);
-      margin-bottom: 6px;
-    }
-
-    .hero-tagline {
-      font-size: clamp(10px, 2.8vw, 12.5px);
-      color: var(--text-muted);
-      letter-spacing: 0.15em;
-      font-weight: 300;
-    }
-
-    .hero-badge {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 6px 20px;
-      font-size: 10.5px;
-      letter-spacing: 0.2em;
-      color: var(--gold);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      background: rgba(201,169,110,0.06);
-    }
-
-    /* scroll hint */
-    .scroll-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 4;
-      animation: bob 2.4s ease-in-out infinite;
-    }
-    .scroll-hint svg {
-      width: 22px;
-      height: 22px;
-      stroke: var(--gold-dim);
-    }
-    @keyframes bob {
-      0%,100% { transform: translateX(-50%) translateY(0); }
-      50%     { transform: translateX(-50%) translateY(6px); }
-    }
-
-    /* ======================= MAIN ======================= */
-    .main {
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 0 20px 60px;
-    }
-
-    .divider {
-      width: 1px;
-      height: 40px;
-      margin: 0 auto 32px;
-      background: linear-gradient(to bottom, transparent, var(--gold-dim));
-    }
-
-    /* reveal animation */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* ── campaign ── */
-    .campaign-card {
-      background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      text-align: center;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
-    }
-    .campaign-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, var(--gold-glow) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .campaign-label {
-      display: inline-block;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 10px;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: var(--gold);
-      border: 1px solid var(--border);
-      padding: 3px 14px;
-      border-radius: 100px;
-      margin-bottom: 18px;
-      position: relative;
-    }
-    .campaign-headline {
-      font-size: clamp(14px, 4vw, 17px);
-      line-height: 1.85;
-      font-weight: 400;
-      color: var(--text);
-      letter-spacing: 0.04em;
-      position: relative;
-    }
-    .campaign-headline strong {
-      font-weight: 600;
-      color: var(--gold);
-      font-size: 1.15em;
-    }
-    .campaign-sub {
-      margin-top: 14px;
-      font-size: 10.5px;
-      color: var(--text-muted);
-      letter-spacing: 0.05em;
-      position: relative;
-    }
-
-    /* ── CTA Section ── */
-    .cta-primary {
-      margin-bottom: 36px;
-    }
-    .cta-primary-text {
-      text-align: center;
-      font-size: clamp(11px, 3vw, 12.5px);
-      color: var(--text-muted);
-      line-height: 1.9;
-      margin-bottom: 18px;
-      letter-spacing: 0.03em;
-    }
-
-    /* buttons */
-    .btn {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: var(--radius);
-      text-decoration: none;
-      transition: all 0.3s ease;
-      margin-bottom: 10px;
-    }
-    .btn:active { transform: scale(0.985); }
-    .btn-icon-wrap {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .btn-icon { width: 26px; height: 26px; }
-    .btn-body {
-      flex: 1;
-      margin-left: 12px;
-      display: flex;
-      flex-direction: column;
-    }
-    .btn-sub {
-      font-size: 9.5px;
-      letter-spacing: 0.06em;
-      margin-bottom: 2px;
-    }
-    .btn-main {
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-    }
-    .btn-arrow {
-      font-size: 20px;
-      margin-left: 8px;
-      opacity: 0.6;
-      flex-shrink: 0;
-    }
-
-    /* LINE btn */
-    .btn-line {
-      background: linear-gradient(135deg, #06c755 0%, #05b34d 100%);
-      color: #fff;
-      box-shadow: 0 4px 18px rgba(6,199,85,0.25);
-    }
-    .btn-line:hover {
-      box-shadow: 0 6px 24px rgba(6,199,85,0.35);
-      background: linear-gradient(135deg, #07d45b 0%, #06c755 100%);
-    }
-    .btn-line .btn-icon-wrap { background: rgba(255,255,255,0.18); }
-    .btn-line .btn-sub { color: rgba(255,255,255,0.8); }
-
-    /* WEB btn */
-    .btn-web {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .btn-web:hover {
-      border-color: var(--gold-dim);
-      background: var(--surface3);
-    }
-    .btn-web .btn-icon-wrap { background: rgba(201,169,110,0.1); }
-    .btn-web .btn-sub { color: var(--text-muted); }
-    .btn-web .btn-main { color: var(--gold-light); }
-    .btn-web .btn-arrow { color: var(--gold-dim); }
-
-    /* ── pricing ── */
-    .pricing-section { margin-bottom: 36px; }
-    .section-label {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .section-label span {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 10px;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: var(--gold-dim);
-      padding: 0 16px;
-      position: relative;
-    }
-    .section-label span::before,
-    .section-label span::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: 28px;
-      height: 1px;
-      background: var(--border);
-    }
-    .section-label span::before { right: 100%; }
-    .section-label span::after  { left: 100%; }
-
-    .pricing-grid { display: flex; flex-direction: column; gap: 6px; }
-    .pricing-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 12px 16px;
-      border-radius: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-    }
-    .pricing-item-title {
-      font-size: clamp(11.5px, 3.2vw, 13px);
-      color: var(--text);
-      letter-spacing: 0.03em;
-    }
-    .pricing-item-price {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(15px, 4.2vw, 18px);
-      font-weight: 500;
-      color: var(--gold);
-      white-space: nowrap;
-    }
-    .pricing-item-price small {
-      font-family: 'Noto Serif JP', serif;
-      font-size: 9.5px;
-      color: var(--text-muted);
-      font-weight: 300;
-      margin-left: 4px;
-    }
-    .pricing-note {
-      text-align: center;
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 10px;
-      letter-spacing: 0.05em;
-    }
-
-    /* ── footer ── */
-    .footer {
-      text-align: center;
-      padding-top: 28px;
-      border-top: 1px solid var(--border-soft);
-    }
-    .footer-coupon {
-      font-size: 11.5px;
-      color: var(--gold);
-      line-height: 1.8;
-      margin-bottom: 16px;
-      letter-spacing: 0.04em;
-    }
-    .footer-hours {
-      font-size: 10.5px;
-      color: var(--text-muted);
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
-    }
-    .footer-address {
-      font-size: 10.5px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      letter-spacing: 0.03em;
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0908;--surface:#131110;--surface2:#1c1916;--gold:#c9a96e;--text:#f0ebe3;--text-muted:#8a7d6e;--border:rgba(201,169,110,0.18);--radius:14px}
+    body{background:var(--bg);font-family:'Noto Serif JP',serif;color:var(--text);line-height:1.6}
+    .hero{width:100%;height:45vh;position:relative;overflow:hidden}
+    .hero-img{width:100%;height:100%;object-fit:cover;filter:brightness(0.7)}
+    .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,var(--bg) 100%)}
+    .hero-content{position:absolute;top:55%;left:0;right:0;text-align:center;padding:0 20px}
+    .hero-en{font-family:'Cormorant Garamond',serif;font-size:28px;letter-spacing:0.2em;color:var(--gold)}
+    .main{max-width:500px;margin:0 auto;padding:20px}
+    .campaign-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:25px;text-align:center;margin-bottom:25px}
+    .campaign-card strong{color:var(--gold);font-size:1.2em}
+    .btn{display:flex;align-items:center;justify-content:center;padding:16px;border-radius:var(--radius);text-decoration:none;margin-bottom:12px;transition:0.3s;font-weight:500}
+    .btn-line{background:#06c755;color:#fff}.btn-web{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+    .pricing-item{display:flex;justify-content:space-between;padding:12px;background:var(--surface);border-radius:10px;margin-bottom:8px;border:1px solid rgba(201,169,110,0.08)}
+    .pricing-price{color:var(--gold);font-family:'Cormorant Garamond',serif}
+    .reveal{opacity:0;transform:translateY(20px);transition:0.8s}.reveal.visible{opacity:1;transform:translateY(0)}
   </style>
 </head>
-
 <body>
-
 <div class="hero">
-  <img src="https://leticiaclinic.github.io/leticiaclinic-reserve/11.jpg"
-       alt="レティシアクリニック 銀座 院内"
-       class="hero-img">
+  <img src="https://leticiaclinic.github.io/leticiaclinic-reserve/11.jpg" class="hero-img">
   <div class="hero-overlay"></div>
-
-  <div class="hero-content">
-    <div class="hero-logo">
-      <div class="hero-logo-line"></div>
-      <div class="hero-logo-diamond"></div>
-      <div class="hero-logo-line r"></div>
-    </div>
-    <p class="hero-en">Leticia Clinic Ginza</p>
-    <p class="hero-tagline">銀座駅徒歩1分 — 理事長による丁寧な診療</p>
-    <div class="hero-badge">症例モニター募集中</div>
-  </div>
-
-  <div class="scroll-hint">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round">
-      <path d="M7 10l5 5 5-5"/>
-    </svg>
-  </div>
+  <div class="hero-content"><p class="hero-en">Leticia Clinic</p></div>
 </div>
-
 <div class="main">
-
-  <div class="divider"></div>
-
-  <div class="campaign-card reveal">
-    <div class="campaign-label">Monitor Special</div>
-    <p class="campaign-headline">
-      美容外科医歴25年の安心のマダム治療が<br>
-      <strong>最大35%OFF</strong>の特別価格で<br>
-      ご受診いただけます
-    </p>
-    <p class="campaign-sub">※ モニター条件についてはカウンセリング時にご説明いたします</p>
+  <div class="campaign-card reveal"><p>美容外科医歴25年の治療が<br><strong>最大35%OFF</strong></p></div>
+  <div class="reveal">
+    <a href="#" class="btn btn-line" onclick="handleLineClick(event)">LINEで予約・相談する</a>
+    <a href="#" class="btn btn-web" onclick="handleWebClick(event)">WEBで予約する</a>
   </div>
-
-  <div class="cta-primary reveal">
-    <p class="cta-primary-text">各治療先着5名のモニターキャンペーン<br>WEB予約で「症例モニター医師カウンセリング」を<br>選択してご予約ください</p>
-
-    <a class="btn btn-line"
-       href="https://liff.line.me/1657615313-pVn9wnwB?rid=161"
-       onclick="handleLineClick(event)">
-      <div class="btn-icon-wrap">
-        <svg class="btn-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M20 4C11.16 4 4 10.27 4 18c0 5.12 2.9 9.62 7.28 12.25-.28 1.04-1.02 3.77-1.17 4.35-.18.7.26.7.54.51.22-.15 2.94-1.96 4.14-2.76.72.1 1.46.15 2.21.15C29.84 32.5 36 26.6 36 18S29.84 4 20 4z" fill="white"/>
-          <path d="M14 21.5h-2V16h2v5.5zm5.5 0h-2v-2.9L15.5 21.5H14V16h2v2.9L18 16h1.5v5.5zm5 0h-4V16H22v4h2.5v1.5zm3 0H26V16h2v1.5h-1.5v.75H28v1.5h-1.5v.75H28v1z" fill="#06c755"/>
-        </svg>
-      </div>
-      <div class="btn-body">
-        <span class="btn-sub">推奨 — LINE限定クーポン配信中</span>
-        <span class="btn-main">LINEで予約・相談する</span>
-      </div>
-      <div class="btn-arrow">›</div>
-    </a>
-
-    <a class="btn btn-web"
-       href="https://connect-app.net/r_leticia/reserve/main"
-       target="_blank"
-       rel="noopener"
-       onclick="handleWebClick(event)">
-      <div class="btn-icon-wrap">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="17" rx="2.5" stroke="#c9a96e" stroke-width="1.5"/>
-          <path d="M3 9h18" stroke="#c9a96e" stroke-width="1.5"/>
-          <path d="M8 2v4M16 2v4" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="8"  cy="13.5" r="1" fill="#c9a96e"/>
-          <circle cx="12" cy="13.5" r="1" fill="#c9a96e"/>
-          <circle cx="16" cy="13.5" r="1" fill="#c9a96e"/>
-          <circle cx="8"  cy="17.5" r="1" fill="#c9a96e"/>
-          <circle cx="12" cy="17.5" r="1" fill="#c9a96e"/>
-        </svg>
-      </div>
-      <div class="btn-body">
-        <span class="btn-sub">24時間いつでも受付</span>
-        <span class="btn-main">WEBで予約する</span>
-      </div>
-      <div class="btn-arrow">›</div>
-    </a>
+  <div class="reveal" style="margin-top:30px">
+    <div class="pricing-item"><span>クマ取り</span><span class="pricing-price">¥143,000〜</span></div>
+    <div class="pricing-item"><span>眼瞼下垂</span><span class="pricing-price">¥107,000〜</span></div>
   </div>
-
-  <div class="pricing-section reveal">
-    <div class="section-label"><span>Monitor Price</span></div>
-    <div class="pricing-grid">
-      <div class="pricing-item">
-        <div class="pricing-item-title">Dr.村井式目の下のたるみ・クマ取り</div>
-        <div class="pricing-item-price">¥143,000<small>（税込 ¥157,300）</small></div>
-      </div>
-      <div class="pricing-item">
-        <div class="pricing-item-title">眼瞼下垂</div>
-        <div class="pricing-item-price">¥107,000<small>（税込 ¥117,700）</small></div>
-      </div>
-      <div class="pricing-item">
-        <div class="pricing-item-title">ヒアルロン酸（1cc）</div>
-        <div class="pricing-item-price">¥46,000<small>（税込 ¥50,600）</small></div>
-      </div>
-      <div class="pricing-item">
-        <div class="pricing-item-title">脂肪注入</div>
-        <div class="pricing-item-price">¥177,000<small>（税込 ¥194,700）</small></div>
-      </div>
-    </div>
-    <div class="pricing-note">※ MAX 35%OFF モニター価格</div>
-  </div>
-
-  <div class="footer reveal">
-    <p class="footer-coupon">LINE登録で限定クーポン配信中<br>ご質問・ご相談もお気軽にどうぞ</p>
-    <p class="footer-hours">11:00 — 20:00（日曜 — 18:30）</p>
-    <p class="footer-address">銀座駅より徒歩1分<br>東京都中央区銀座4-2-17 銀座111レジャービル12階</p>
-  </div>
-
 </div>
-
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-
-    document.querySelectorAll('.reveal').forEach(function(el) {
-      observer.observe(el);
-    });
-  });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
-
 </body>
 </html>
