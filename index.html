@@ -1,50 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>症例モニター医師カウンセリング｜レティシアクリニック</title>
-
-  <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window,document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '872763425811626');
-    fbq('track', 'PageView');
-  </script>
-  <noscript>
-    <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=872763425811626&ev=PageView&noscript=1"/>
-  </noscript>
-
-  <script>
-    // ── Cookie helper ──
-    function getCookie(name) {
-      var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? decodeURIComponent(match[2]) : '';
-    }
-
-    // ── URL parameter helper ──
-    function getParam(name) {
-      var params = new URLSearchParams(window.location.search);
-      return params.get(name) || '';
-    }
-
-    // ── Safe fbq ──
-    function safeFbq() {
-      try {
-        if (typeof fbq === 'function') {
-          fbq.apply(null, arguments);
-        }
-      } catch(e) {}
-    }
-
-    // ── Send event data to Make Webhook for CAPI ──
+// ── Send event data to Make Webhook for CAPI ──
     function sendCAPIEvent(eventName, contentName) {
       try {
         var fbclid = getParam('fbclid');
@@ -71,18 +25,16 @@
 
         var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
 
-        // 修正ポイント: navigator.sendBeacon から fetch に変更
-        // credentials: 'omit' を指定することでCORSの制限（Wildcard '*' issues）を回避します
+        // 修正：sendBeaconを廃止し、credentialsを指定しないfetchに変更
         fetch(webhookUrl, {
           method: 'POST',
           mode: 'cors',
-          credentials: 'omit', 
+          credentials: 'omit', // これがCORSエラーを回避する重要ポイントです
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json'
           }
         }).catch(function(err) {
-          // エラーが発生してもユーザーの体験を阻害しないよう、ログのみ出力
           console.warn('CAPI transmission failed:', err);
         });
 
@@ -90,53 +42,3 @@
         // Silently fail
       }
     }
-
-    // ── Button handlers ──
-    function handleLineClick(e) {
-      e.preventDefault();
-      safeFbq('track', 'Lead', {content_name: 'LINE登録_モニターキャンペーン'});
-      sendCAPIEvent('Lead', 'LINE登録_モニターキャンペーン');
-      var url = 'https://liff.line.me/1657615313-pVn9wnwB?rid=161';
-      setTimeout(function() {
-        window.location.href = url;
-      }, 400);
-    }
-
-    function handleWebClick(e) {
-      e.preventDefault();
-      safeFbq('track', 'Schedule', {content_name: 'WEB予約_モニターキャンペーン'});
-      sendCAPIEvent('Schedule', 'WEB予約_モニターキャンペーン');
-      var url = 'https://connect-app.net/r_leticia/reserve/main';
-      setTimeout(function() {
-        window.open(url, '_blank', 'noopener');
-      }, 400);
-    }
-
-    // ── Send PageView CAPI event on page load ──
-    document.addEventListener('DOMContentLoaded', function() {
-      sendCAPIEvent('PageView', 'クッションページ閲覧');
-    });
-  </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Noto+Serif+JP:wght@200;300;400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:           #0a0908;
-      --surface:      #131110;
-      --surface2:     #1c1916;
-      --surface3:     #252120;
-      --gold:         #c9a96e;
-      --gold-light:   #e8d5aa;
-      --gold-dim:     #7a6340;
-      --gold-glow:    rgba(201,169,110,0.15);
-      --text:         #f0ebe3;
-      --text-muted:   #8a7d6e;
-      --border:       rgba(201,169,110,0.18);
-      --border-soft:  rgba(201,169,110,0.08);
-      --accent-gold:  #d4a754;
-      --line-green:
