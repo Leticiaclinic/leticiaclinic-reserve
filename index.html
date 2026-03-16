@@ -23,36 +23,97 @@
       src="https://www.facebook.com/tr?id=872763425811626&ev=PageView&noscript=1"/>
   </noscript>
 
-  <!-- Safe fbq helper + LINE LIFF redirect handler -->
+  <!-- Safe fbq helper + LINE LIFF redirect handler + CAPI Webhook -->
   <script>
+    // ── Cookie helper ──
+    function getCookie(name) {
+      var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : '';
+    }
+
+    // ── URL parameter helper ──
+    function getParam(name) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(name) || '';
+    }
+
+    // ── Safe fbq ──
     function safeFbq() {
       try {
         if (typeof fbq === 'function') {
           fbq.apply(null, arguments);
         }
+      } catch(e) {}
+    }
+
+    // ── Send event data to Make Webhook for CAPI ──
+    function sendCAPIEvent(eventName, contentName) {
+      try {
+        var fbclid = getParam('fbclid');
+        var fbp = getCookie('_fbp');
+        var fbc = getCookie('_fbc');
+
+        // If no fbc cookie but fbclid exists, construct fbc manually
+        if (!fbc && fbclid) {
+          fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+        }
+
+        var payload = {
+          event_name: eventName,
+          event_time: Math.floor(Date.now() / 1000),
+          event_source_url: window.location.href,
+          action_source: 'website',
+          content_name: contentName,
+          user_data: {
+            client_user_agent: navigator.userAgent,
+            fbc: fbc || '',
+            fbp: fbp || '',
+            fbclid: fbclid || ''
+          }
+        };
+
+        // MakeのWebhook URLにデータを送信
+        var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
+
+        // navigator.sendBeacon for reliability (fires even if page navigates away)
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(webhookUrl, JSON.stringify(payload));
+        } else {
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', webhookUrl, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify(payload));
+        }
       } catch(e) {
-        // Pixel not loaded — silently ignore
+        // Silently fail — don't block user navigation
       }
     }
 
+    // ── Button handlers ──
     function handleLineClick(e) {
       e.preventDefault();
       safeFbq('track', 'Lead', {content_name: 'LINE登録_モニターキャンペーン'});
+      sendCAPIEvent('Lead', 'LINE登録_モニターキャンペーン');
       var url = 'https://liff.line.me/1657615313-pVn9wnwB?rid=161';
-      // Small delay to allow pixel to fire, then navigate
       setTimeout(function() {
         window.location.href = url;
-      }, 300);
+      }, 400);
     }
 
     function handleWebClick(e) {
       e.preventDefault();
       safeFbq('track', 'Schedule', {content_name: 'WEB予約_モニターキャンペーン'});
+      sendCAPIEvent('Schedule', 'WEB予約_モニターキャンペーン');
       var url = 'https://connect-app.net/r_leticia/reserve/main';
       setTimeout(function() {
         window.open(url, '_blank', 'noopener');
-      }, 300);
+      }, 400);
     }
+
+    // ── Send PageView CAPI event on page load ──
+    document.addEventListener('DOMContentLoaded', function() {
+      sendCAPIEvent('PageView', 'クッションページ閲覧');
+    });
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -478,7 +539,7 @@
 
 <!-- ======================= HERO ======================= -->
 <div class="hero">
-  <img src="11.jpg"
+  <img src="https://leticiaclinic.github.io/leticiaclinic-reserve/11.jpg"
        alt="レティシアクリニック 銀座 院内"
        class="hero-img">
   <div class="hero-overlay"></div>
