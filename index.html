@@ -75,7 +75,7 @@
         // MakeのWebhook URLにデータを送信
         var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
 
-        var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        var blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
         navigator.sendBeacon(webhookUrl, blob);
       } catch(e) {
         // Silently fail — don't block user navigation
