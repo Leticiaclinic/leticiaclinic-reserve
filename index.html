@@ -75,15 +75,12 @@
         // MakeのWebhook URLにデータを送信
         var webhookUrl = 'https://hook.us2.make.com/3jvo4tgiqetar6onruly12a8asfmpjt';
 
-        // navigator.sendBeacon for reliability (fires even if page navigates away)
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon(webhookUrl, JSON.stringify(payload));
-        } else {
-          var xhr = new XMLHttpRequest();
-          xhr.open('POST', webhookUrl, true);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.send(JSON.stringify(payload));
-        }
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        }).catch(function() {});
       } catch(e) {
         // Silently fail — don't block user navigation
       }
