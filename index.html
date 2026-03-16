@@ -40,13 +40,25 @@
       return params.get(name) || '';
     }
 
-    // ===== fbclid → _fbc Cookie 早期保存（ベストプラクティス準拠） =====
+    // ===== UTMソース判定 =====
+    function getTrafficSource() {
+      var utm = getParam('utm_source');
+      if (utm === 'ig_ad') return 'ig_ad';
+      if (utm === 'ig_profile') return 'ig_profile';
+      if (getParam('fbclid')) return 'ig_ad';
+      return 'direct';
+    }
+
+    var trafficSource = '';
+
+    // ===== fbclid → _fbc Cookie 早期保存 =====
     (function() {
       var fbclid = getParam('fbclid');
       if (fbclid && !getCookie('_fbc')) {
         var fbc = 'fb.1.' + Date.now() + '.' + fbclid;
         document.cookie = '_fbc=' + encodeURIComponent(fbc) + ';max-age=' + (90*24*60*60) + ';path=/;SameSite=Lax';
       }
+      trafficSource = getTrafficSource();
     })();
 
     function safeFbq() {
@@ -57,24 +69,39 @@
       } catch(e) {}
     }
 
+    // ===== ソースラベル取得 =====
+    function getSourceLabel() {
+      if (trafficSource === 'ig_ad') return '【広告直接】';
+      if (trafficSource === 'ig_profile') return '【プロフ経由】';
+      return '【直接/その他】';
+    }
+
     function sendCAPIEvent(eventName, contentName) {
       try {
         var fbclid = getParam('fbclid');
         var fbp = getCookie('_fbp');
         var fbc = getCookie('_fbc') || (fbclid ? 'fb.1.' + Date.now() + '.' + fbclid : '');
 
+        var fullContentName = contentName + getSourceLabel();
+
         var payload = {
           event_name: eventName,
           event_time: Math.floor(Date.now() / 1000),
           event_source_url: window.location.href,
           action_source: 'website',
-          content_name: contentName,
+          content_name: fullContentName,
           user_data: {
             client_user_agent: navigator.userAgent,
             client_ip_address: userIP,
             fbc: fbc,
             fbp: fbp,
             fbclid: fbclid
+          },
+          custom_data: {
+            traffic_source: trafficSource,
+            utm_source: getParam('utm_source'),
+            utm_medium: getParam('utm_medium'),
+            utm_campaign: getParam('utm_campaign')
           }
         };
 
@@ -83,7 +110,7 @@
         fetch(webhookUrl, {
           method: 'POST',
           mode: 'cors',
-          credentials: 'omit', 
+          credentials: 'omit',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         }).catch(function(err) {
@@ -94,7 +121,10 @@
 
     function handleLineClick(e) {
       e.preventDefault();
-      safeFbq('track', 'Lead', {content_name: 'LINE登録_モニターキャンペーン'});
+      safeFbq('track', 'Lead', {
+        content_name: 'LINE登録_モニターキャンペーン' + getSourceLabel(),
+        content_category: trafficSource
+      });
       sendCAPIEvent('Lead', 'LINE登録_モニターキャンペーン');
       var url = 'https://liff.line.me/1657615313-pVn9wnwB?rid=161';
       setTimeout(function() {
@@ -104,7 +134,10 @@
 
     function handleWebClick(e) {
       e.preventDefault();
-      safeFbq('track', 'Schedule', {content_name: 'WEB予約_モニターキャンペーン'});
+      safeFbq('track', 'Schedule', {
+        content_name: 'WEB予約_モニターキャンペーン' + getSourceLabel(),
+        content_category: trafficSource
+      });
       sendCAPIEvent('Schedule', 'WEB予約_モニターキャンペーン');
       var url = 'https://connect-app.net/r_leticia/reserve/main';
       setTimeout(function() {
